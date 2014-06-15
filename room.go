@@ -21,6 +21,10 @@ type Room struct {
 	cap     int
 }
 
+type ChatRoom struct {
+	Room
+}
+
 // var (
 // 	rooms       []room
 // 	noEmptyRoom = true
@@ -31,6 +35,12 @@ type RoomManeger struct {
 	rooms       []*Room
 	haveRoom    bool
 	currentRoom *Room
+}
+
+type ChatRoomManeger struct {
+	rooms       []*ChatRoom
+	haveRoom    bool
+	currentRoom *ChatRoom
 }
 
 func NewRoom() *Room {
@@ -96,6 +106,7 @@ func (r *Room) GetGameInfo() string {
 }
 
 func (r *RoomManeger) CreateNewRoom(p *Player) {
+	log.Println("create new room")
 	roomManeger.currentRoom = NewRoom()
 	roomManeger.currentRoom.Join(p)
 	p.isHost = true

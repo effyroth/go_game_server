@@ -14,6 +14,7 @@ var cmdHandlers = map[string]commandHandler{
 	// "CMD_REGISTER":    cmdRegisterHander,
 	"CMD_JOINROOM":  cmdJoinRoomHandler,
 	"CMD_STARTGAME": cmdStartGameHandler,
+	"CMD_CHAT":      cmdChatHandler,
 }
 
 func cmdJoinRoomHandler(p *Player, command string, param *simplejson.Json) {
@@ -32,13 +33,49 @@ func cmdJoinRoomHandler(p *Player, command string, param *simplejson.Json) {
 			log.Printf("Send fail for cmLoginHander")
 		}
 	}()
+	roomType, _ := param.Get("RoomType").String()
+	switch roomType {
+	case "Chat":
+		JoinRoom(p)
+	default:
+		JoinRoom(p)
+	}
 
+	rtnMsg = p.GetRoomInfo()
+}
+
+func cmdChatHandler(p *Player, command string, param *simplejson.Json) {
+	rtnCode := 0
+	var rtnMsg interface{}
+	defer func() {
+
+		if 0 == rtnCode && 0 == p.charID {
+			// client need display create character UI
+			// rtnMsg = "JoinRoom"
+		} else {
+			rtnMsg, _ = errCodes[rtnCode]
+		}
+		rtnJson := responseJson(command, rtnCode, rtnMsg)
+		if err := websocket.Message.Send(p.ws, rtnJson); err != nil {
+			log.Printf("Send fail for cmLoginHander")
+		}
+	}()
+	message, _ := param.Get("Message").String()
+	p.room.Publish(message)
+
+	rtnMsg = p.GetRoomInfo()
+}
+
+func JoinRoom(p *Player) {
 	if roomManeger.haveRoom {
 		JoinCurrentRoom(p)
 	} else {
 		roomManeger.CreateNewRoom(p)
 	}
-	rtnMsg = p.GetRoomInfo()
+}
+
+func JoinChatRoom(p *Player) {
+
 }
 
 func cmdStartGameHandler(p *Player, command string, param *simplejson.Json) {
@@ -90,6 +127,7 @@ func responseJson(command string, code int, message interface{}) string {
 }
 
 func commandDispatcher(p *Player, js *simplejson.Json) {
+	log.Println("dispatch")
 	rtnCode := 0
 	command := ""
 
