@@ -10,16 +10,19 @@ import (
 // Echo the data received on the WebSocket.
 func gameServer(ws *websocket.Conn) {
 
-	var err error
-	var this Player // link ws with Player
+	roomManeger.GetRoomsInfo()
 
-	this.ws = ws
+	var err error
+	player := NewPlayer(ws) // link ws with Player
+
+	// player.ws = ws
 	// need loop to keep socket connect
 	for {
 		var reply string
 
 		if err = websocket.Message.Receive(ws, &reply); err != nil {
 			log.Printf("connect closed!")
+			player.Leave()
 			break
 		}
 
@@ -30,7 +33,13 @@ func gameServer(ws *websocket.Conn) {
 			continue
 		}
 
-		commandDispatcher(&this, js)
+		commandDispatcher(player, js)
 	}
 
+}
+
+func Send(ws *websocket.Conn, rtnJson string) {
+	if err := websocket.Message.Send(ws, rtnJson); err != nil {
+		log.Printf("Send fail for cmLoginHander")
+	}
 }
